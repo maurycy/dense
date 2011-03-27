@@ -1,0 +1,129 @@
+=Dense
+
+Dense is intended as an abstract class for more efficient Ruby serialization.
+
+Data serialization formats, and their implementations, deliver different strenghts, and in most Ruby applications there is no single point to control the serialization formats.
+
+Inefficient data serialization leads to wasted resources, such as storage, CPU cycles, and time.
+
+Dense provides a cheap abstraction for globally managed serialization driven by objectives.
+
+==Background
+
+In most Ruby on Rails application, data serialization is not an issue.
+
+However, if you manage *millions* of serialized objects, it makes sense to optimize the serialization to fit a specific objective. For instance, the serialized data stored in a database should be compact, and the serialized data processed by a queue should be less CPU-intensive.
+
+Basically, more efficient data serialization enables to save resources.
+
+In a huge application, it becomes nearly impossible to manage all data serialization formats used by all submodules. Dense aims to provide the single interface to abstract out the data serialization format from specific modules.
+
+Another reason to incorporate the single interface is to reduce cost of change. Instead of manually changing all places invoking, for instance, #to_json, Dense provides the global configuration. With the recent boom of binary-based serialization formats, such as Protocol Buffers[http://code.google.com/p/protobuf/], Thrift[http://incubator.apache.org/thrift/], and others, we can expect even more development in this area.
+
+==Quick Start
+
+The simplest data serialization:
+
+	array = %w(a b c)
+
+	densed = Dense.pack(array)
+	Dense.unpack(densed) == array
+
+The data serialization driven by a specific objective:
+
+	array = %w(a b c)
+
+	densed = Dense.pack(array, :fast)
+	Dense.unpack(densed, :fast) == array
+
+Please note that you have to use the same objective in both Dense#pack and Dense#unpack. It makes sense, though, as you cannot deserialize with YAML an object serialized with JSON.
+
+If there no specific objective defined, it uses the default objective, which is set to YAML.
+
+To define the serialization objective:
+
+	Dense.objective(:readable) do |o|
+		o.pack   {|v| v.to_json }
+		o.unpack {|v| JSON.parse(v) }
+	end
+
+	array = %w(a b c)
+
+	Dense.unpack(Dense.pack(array, :readable), :readable) == array
+
+It is developer's responsibility to match a serialization format with the structure.
+
+To change the default objective:
+
+	Dense.objective(:default) do |o|
+		o.pack   {|v| v.to_json }
+		o.unpack {|v| JSON.parse(v) }
+	end
+
+To set the objective for all #is_a? objects:
+
+	Dense.objective(:readable) do |o|
+		o.is_a    User
+		o.pack   {|v| v.to_json }
+		o.unpack {|v| JSON.parse(v) }
+	end
+
+	user = User.new
+	Dense.unpack(Dense.pack(user)) == user
+
+If there are few classes you'd like to match, specify an array.
+
+To set the objective for all #respond_to? objects:
+
+	Dense.objective(:readable) do |o|
+		o.respond_to  :size
+		o.pack		 {|v| v.to_json }
+		o.unpack	 {|v| JSON.parse(v) }
+	end
+
+It is generally not recommended to set an objective for base classes, such as Array, Hash etc.
+
+To set the objective dynamically:
+
+	Dense.objective(:compact) do |o|
+		o.proc   {|v| v.respond_to?(:size) && v.size >= 128 } 
+		o.pack   {|v| Marshal.dump(v) }
+		o.unpack {|v| Marshal.load(v) }
+	end
+
+For the performance reasons, it is not recommended to overload #proc, and, if possible, to hedge it with #is_a? matching:
+
+	Dense.objective(:compact) do |o|
+		o.is_a    User
+		o.proc	 {|v| v.size >= 128}
+		o.pack   {|v| Marshal.dump(v) }
+		o.unpack {|v| Marshal.load(v) }
+	end
+
+If you are not sure which objective is defined for a given object:
+
+	Dense.which(%w(a b c)) == :default
+
+Generally, if there is no explicit objective specified, the first match counts, and, if none, it goes with the default :objective.
+
+There is also a helper to convert between objectives:
+
+	Dense.convert(Dense.pack(%w(a b c), :compact), :compact, :fast)
+
+In order to check whether an object is suitable for a given object:
+
+	Dense.suitable?(%w(a b c), :fast)
+
+Basically, the idea behind Dense.suitable? is to incorporate a new data serialization format to the Dense configuration, and check if existing data pass.
+
+If one changes the data serialization format, it is recommended to simply overwrite the objective:
+
+	Dense.objective(:compact) do |o|
+		o.pack	 {|v| Marshal.dump(v) }
+		o.unpack {|v| Marshal.load(v) }
+	end
+
+	Dense.objective(:compact) do |o|
+		o.pack	 {|v| MessagePack.pack(v) }
+		o.unpack {|v| MessagePack.unpack(v) }
+	end
