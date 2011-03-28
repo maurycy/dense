@@ -146,10 +146,10 @@ protected
   end
   
   def dense_objective_transparent
-    Dense.objective(:transparent, {
-      :pack     => Proc.new {|obj| obj },
-      :unpack   => Proc.new {|obj| obj }
-    })
+    Dense.objective(:transparent) do |o|
+      o.pack    Proc.new {|obj| obj}
+      o.unpack  Proc.new {|obj| obj}
+    end
     
     if block_given?
       yield

@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'block_hash'
+
 class Dense
   
   def self.pack(obj, objective=nil)
@@ -23,8 +26,8 @@ class Dense
   end
 
   # TODO
-  def self.objective(name, params)
-    objective_hash(name, params)
+  def self.objective(name, params={}, &block)
+    objective_hash(name, BlockHash.evaluate(params, &block))
   end
   
 protected
