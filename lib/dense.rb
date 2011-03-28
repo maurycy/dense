@@ -5,7 +5,7 @@ class Dense
   end
   
   # XXX: It is impossible to use the same :method for both use
-  # XXX cases.
+  # XXX: cases.
   def self.unpack(obj, objective=nil)
     objective.nil? ? unpack_fuzzy(obj) : unpack_explicit(obj, objective)
   end
