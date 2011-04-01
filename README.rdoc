@@ -60,50 +60,6 @@ To change the default objective:
 		o.unpack {|v| JSON.parse(v) }
 	end
 
-To set the objective for all #is_a? objects:
-
-	Dense.objective(:readable) do |o|
-		o.is_a    User
-		o.pack   {|v| v.to_json }
-		o.unpack {|v| JSON.parse(v) }
-	end
-
-	user = User.new
-	Dense.unpack(Dense.pack(user)) == user
-
-If there are few classes you'd like to match, specify an array.
-
-To set the objective for all #respond_to? objects:
-
-	Dense.objective(:readable) do |o|
-		o.respond_to  :size
-		o.pack		 {|v| v.to_json }
-		o.unpack	 {|v| JSON.parse(v) }
-	end
-
-It is generally not recommended to set an objective for base classes, such as Array, Hash etc.
-
-To set the objective dynamically:
-
-	Dense.objective(:compact) do |o|
-		o.proc   {|v| v.respond_to?(:size) && v.size >= 128 } 
-		o.pack   {|v| Marshal.dump(v) }
-		o.unpack {|v| Marshal.load(v) }
-	end
-
-For the performance reasons, it is not recommended to overload #proc, and, if possible, to hedge it with #is_a? matching:
-
-	Dense.objective(:compact) do |o|
-		o.is_a    User
-		o.proc	 {|v| v.size >= 128}
-		o.pack   {|v| Marshal.dump(v) }
-		o.unpack {|v| Marshal.load(v) }
-	end
-
-If you are not sure which objective is defined for a given object:
-
-	Dense.which(%w(a b c)) == :default
-
 Generally, if there is no explicit objective specified, the first match counts, and, if none, it goes with the default :objective.
 
 There is also a helper to convert between objectives:

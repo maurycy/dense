@@ -33,14 +33,6 @@ class DenseTest < Test::Unit::TestCase
     end
   end
   
-  def test_pack_fuzzy
-    dense_objective_hash do
-      assert_equal      Dense.pack(v), Dense.pack(v, :hash)
-      assert_not_equal  Dense.pack(v), Dense.pack(v, :default)
-      assert_not_equal  Dense.pack(v), Dense.pack(v, :missing)
-    end
-  end
-  
   def test_pack_overwrite
     dense_objective_compact do
       assert_equal Marshal.dump(v), Dense.pack(v, :compact)
@@ -79,12 +71,6 @@ class DenseTest < Test::Unit::TestCase
     end
   end
   
-  def test_unpack_fuzzy
-    dense_objective_hash do
-      assert_equal v, Dense.unpack(Dense.pack(v), :hash)
-    end
-  end
-  
   def test_unpack_fallback
     dense_objective_compact do
       Dense.objective(:compact, {
@@ -93,13 +79,6 @@ class DenseTest < Test::Unit::TestCase
       })
       
       assert_equal JSON.parse(v.to_json), Dense.unpack(v.to_json)
-    end
-  end
-  
-  def test_which
-    dense_objective_hash do
-      assert_equal :hash,    Dense.which(v)
-      assert_equal :default, Dense.which(1)
     end
   end
   
