@@ -75,11 +75,11 @@ Basically, the idea behind Dense.suitable? is to incorporate a new data serializ
 If one changes the data serialization format, it is recommended to simply overwrite the objective:
 
   Dense.objective(:compact) do |o|
-    o.pack	 {|v| Marshal.dump(v) }
-    o.unpack {|v| Marshal.load(v) }
+    o.pack    {|v| Marshal.dump(v) }
+    o.unpack  {|v| Marshal.load(v) }
   end
 
   Dense.objective(:compact) do |o|
-    o.pack	 {|v| MessagePack.pack(v) }
-    o.unpack {|v| MessagePack.unpack(v) }
+    o.pack    {|v| MessagePack.pack(v) }
+    o.unpack  {|v| MessagePack.unpack(v) }
   end
