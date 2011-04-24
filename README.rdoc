@@ -10,7 +10,7 @@ Dense provides a cheap abstraction for globally managed serialization driven by 
 
 ==Background
 
-In most Ruby on Rails application, data serialization is not an issue.
+In most Ruby on Rails applications, data serialization is not an issue.
 
 However, if you manage *millions* of serialized objects, it makes sense to optimize the serialization to fit a specific objective. For instance, the serialized data stored in a database should be compact, and the serialized data processed by a queue should be less CPU-intensive.
 
@@ -24,17 +24,17 @@ Another reason to incorporate the single interface is to reduce cost of change. 
 
 The simplest data serialization:
 
-	array = %w(a b c)
-
-	densed = Dense.pack(array)
-	Dense.unpack(densed) == array
+  array = %w(a b c)
+  
+  densed = Dense.pack(array)
+  Dense.unpack(densed) == array
 
 The data serialization driven by a specific objective:
 
-	array = %w(a b c)
+  array = %w(a b c)
 
-	densed = Dense.pack(array, :fast)
-	Dense.unpack(densed, :fast) == array
+  densed = Dense.pack(array, :fast)
+  Dense.unpack(densed, :fast) == array
 
 Please note that you have to use the same objective in both Dense#pack and Dense#unpack. It makes sense, though, as you cannot deserialize with YAML an object serialized with JSON.
 
@@ -42,44 +42,44 @@ If there no specific objective defined, it uses the default objective, which is 
 
 To define the serialization objective:
 
-	Dense.objective(:readable) do |o|
-		o.pack   {|v| v.to_json }
-		o.unpack {|v| JSON.parse(v) }
-	end
+  Dense.objective(:readable) do |o|
+    o.pack   {|v| v.to_json }
+    o.unpack {|v| JSON.parse(v) }
+  end
 
-	array = %w(a b c)
+  array = %w(a b c)
 
-	Dense.unpack(Dense.pack(array, :readable), :readable) == array
+  Dense.unpack(Dense.pack(array, :readable), :readable) == array
 
 It is developer's responsibility to match a serialization format with the structure.
 
 To change the default objective:
 
-	Dense.objective(:default) do |o|
-		o.pack   {|v| v.to_json }
-		o.unpack {|v| JSON.parse(v) }
-	end
+  Dense.objective(:default) do |o|
+    o.pack   {|v| v.to_json }
+    o.unpack {|v| JSON.parse(v) }
+  end
 
 Generally, if there is no explicit objective specified, the first match counts, and, if none, it goes with the default :objective.
 
 There is also a helper to convert between objectives:
 
-	Dense.convert(Dense.pack(%w(a b c), :compact), :compact, :fast)
+  Dense.convert(Dense.pack(%w(a b c), :compact), :compact, :fast)
 
 In order to check whether an object is suitable for a given object:
 
-	Dense.suitable?(%w(a b c), :fast)
+  Dense.suitable?(%w(a b c), :fast)
 
 Basically, the idea behind Dense.suitable? is to incorporate a new data serialization format to the Dense configuration, and check if existing data pass.
 
 If one changes the data serialization format, it is recommended to simply overwrite the objective:
 
-	Dense.objective(:compact) do |o|
-		o.pack	 {|v| Marshal.dump(v) }
-		o.unpack {|v| Marshal.load(v) }
-	end
+  Dense.objective(:compact) do |o|
+    o.pack	 {|v| Marshal.dump(v) }
+    o.unpack {|v| Marshal.load(v) }
+  end
 
-	Dense.objective(:compact) do |o|
-		o.pack	 {|v| MessagePack.pack(v) }
-		o.unpack {|v| MessagePack.unpack(v) }
-	end
+  Dense.objective(:compact) do |o|
+    o.pack	 {|v| MessagePack.pack(v) }
+    o.unpack {|v| MessagePack.unpack(v) }
+  end
