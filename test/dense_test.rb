@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'test/unit'
-require 'ruby-debug'
 
 class DenseTest < Test::Unit::TestCase
 
